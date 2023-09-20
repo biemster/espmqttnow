@@ -129,16 +129,20 @@ size_t ESPNOW_create_packet(uint8_t *raw_bytes, uint8_t *payload, int len) {
 }
 
 void publish_callback(void** unused, struct mqtt_response_publish *published) {
-	/* note that published->topic_name is NOT null-terminated (here we'll change it to a c-string) */
+	/* note that published->topic_name AND msg are NOT null-terminated (here we'll change it to a c-string) */
 	char* topic_name = (char*) malloc(published->topic_name_size + 1);
 	memcpy(topic_name, published->topic_name, published->topic_name_size);
 	topic_name[published->topic_name_size] = '\0';
 
-	printf("Received publish('%s'): %s, broadcasting it over ESPNOW\n", topic_name, (const char*) published->application_message);
+	uint8_t* msg = (uint8_t*) malloc(published->application_message_size + 1);
+	memcpy(msg, published->application_message, published->application_message_size);
+	msg[published->application_message_size] = '\0';
+
+	printf("Received publish('%s'): %s, broadcasting it over ESPNOW\n", topic_name, msg);
 	free(topic_name);
 
 	uint8_t raw_bytes[LEN_RAWBYTES_MAX] = {0};
-	int raw_len = ESPNOW_create_packet(raw_bytes, (uint8_t*)published->application_message, published->application_message_size);
+	int raw_len = ESPNOW_create_packet(raw_bytes, msg, published->application_message_size);
 	sendto(raw_wlan_sock_fd, raw_bytes, raw_len, 0, NULL, 0);
 }
 
