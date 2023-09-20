@@ -51,23 +51,7 @@ int open_nb_socket(const char* addr, const char* port) {
 	freeaddrinfo(servinfo);
 
 	/* make non-blocking */
-#if !defined(WIN32)
 	if (sockfd != -1) fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK);
-#else
-	if (sockfd != INVALID_SOCKET) {
-		int iMode = 1;
-		ioctlsocket(sockfd, FIONBIO, &iMode);
-	}
-#endif
-#if defined(__VMS)
-	/* 
-		OpenVMS only partially implements fcntl. It works on file descriptors
-		but silently fails on socket descriptors. So we need to fall back on
-		to the older ioctl system to set non-blocking IO
-	*/
-	int on = 1;                 
-	if (sockfd != -1) ioctl(sockfd, FIONBIO, &on);
-#endif
 
 	/* return the new socket fd */
 	return sockfd;

@@ -20,6 +20,7 @@ client.on_message = on_message
 
 assert(len(sys.argv) == 2)
 client.connect(sys.argv[1], 1883, 60)
+client.publish('espnow/broadcast', 'Im up!')
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.
